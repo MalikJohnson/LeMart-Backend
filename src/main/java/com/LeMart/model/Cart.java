@@ -1,17 +1,22 @@
 package com.LeMart.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
 @Entity
 @Table(name = "carts")
 public class Cart {
-    @Id
+    public Cart(Long id, User user, List<CartItem> cartItems, LocalDateTime createdAt, LocalDateTime updatedAt) {
+		this.id = id;
+		this.user = user;
+		this.cartItems = cartItems;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+	}
+    public Cart() {}
+
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -38,4 +43,49 @@ public class Cart {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public List<CartItem> getCartItems() {
+		return cartItems;
+	}
+
+	public void setCartItems(List<CartItem> cartItems) {
+		this.cartItems = cartItems;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+	@Override
+	public String toString() {
+		return "Cart [id=" + id + ", user=" + user + ", cartItems=" + cartItems + ", createdAt=" + createdAt
+				+ ", updatedAt=" + updatedAt + "]";
+	}
 }

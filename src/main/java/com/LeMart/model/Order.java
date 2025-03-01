@@ -1,17 +1,26 @@
 package com.LeMart.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
+
 @Entity
 @Table(name = "orders")
 public class Order {
-    @Id
+    public Order(Long id, User user, double totalAmount, String status, List<OrderItem> orderItems,
+			LocalDateTime createdAt, LocalDateTime updatedAt) {
+		this.id = id;
+		this.user = user;
+		this.totalAmount = totalAmount;
+		this.status = status;
+		this.orderItems = orderItems;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+	}
+    public Order () {}
+
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -44,4 +53,65 @@ public class Order {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public double getTotalAmount() {
+		return totalAmount;
+	}
+
+	public void setTotalAmount(double totalAmount) {
+		this.totalAmount = totalAmount;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public List<OrderItem> getOrderItems() {
+		return orderItems;
+	}
+
+	public void setOrderItems(List<OrderItem> orderItems) {
+		this.orderItems = orderItems;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+	@Override
+	public String toString() {
+		return "Order [id=" + id + ", user=" + user + ", totalAmount=" + totalAmount + ", status=" + status
+				+ ", orderItems=" + orderItems + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+	}
 }
