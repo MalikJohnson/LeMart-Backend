@@ -1,7 +1,9 @@
 package com.LeMart.controller;
 
 import com.LeMart.dto.ProductDTO;
+import com.LeMart.model.Category;
 import com.LeMart.model.Product;
+import com.LeMart.repo.CategoryRepo;
 import com.LeMart.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,9 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+    
+    @Autowired  // This makes it an instance member
+    private CategoryRepo categoryRepository;
 
     @GetMapping
     public ResponseEntity<List<ProductDTO>> getAllProducts() {
@@ -92,7 +97,9 @@ public class ProductController {
         product.setImageUrl(productDTO.getImageUrl());
         product.setStockQuantity(productDTO.getStockQuantity());
         product.setRating(productDTO.getRating());
-        // Category is set separately (For example via a service method)
+        Category category = categoryRepository.findById(productDTO.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+            product.setCategory(category);
         return product;
     }
 }
