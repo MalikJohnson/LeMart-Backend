@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -54,11 +55,17 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequestDTO signupRequest) {
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already taken");
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Username already taken",
+                "status", "error"
+            ));
         }
 
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
-            return ResponseEntity.badRequest().body("Email already in use");
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Email already in use",
+                "status", "error"
+            ));
         }
 
         User user = new User();
@@ -69,12 +76,20 @@ public class AuthController {
         user.setCity(signupRequest.getCity());
         user.setState(signupRequest.getState());
         user.setZipCode(signupRequest.getZipCode());
-        user.setAdmin(false); // By default, users are not admins
+        user.setAdmin(false);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        userService.addUser(user);
+        user = userService.addUser(user);
+        
+        String jwt = jwtUtils.generateTokenFromUsername(user.getUsername());
 
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok(Map.of(
+            "token", jwt,
+            "message", "User registered successfully",
+            "status", "success",
+            "username", user.getUsername(),
+            "userId", user.getId()
+        ));
     }
 }
