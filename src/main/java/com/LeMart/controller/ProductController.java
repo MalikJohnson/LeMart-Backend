@@ -19,7 +19,7 @@ public class ProductController {
     @Autowired
     private ProductService productService;
     
-    @Autowired  // This makes it an instance member
+    @Autowired
     private CategoryRepo categoryRepository;
 
     @GetMapping
