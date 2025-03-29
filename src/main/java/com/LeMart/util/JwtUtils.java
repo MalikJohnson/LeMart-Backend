@@ -52,7 +52,7 @@ public class JwtUtils {
                 .setSubject(username)
                 .claim("userId", userId)
                 .claim("username", username)
-                .claim("role", isAdmin ? "ADMIN" : "USER")
+                .claim("isAdmin", isAdmin) // Just store the boolean
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

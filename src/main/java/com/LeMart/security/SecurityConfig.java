@@ -47,29 +47,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors().and()  // Explicitly enable CORS
             .csrf(csrf -> csrf.disable())
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            	.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/carts/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/cart-items/**").permitAll()
-                .requestMatchers("/users/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/categories/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
+                // Changed cart endpoints to require authentication
+                .requestMatchers(HttpMethod.GET, "/carts/user/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/carts/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/carts/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/carts/user/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/carts/**").authenticated()
+                // Changed admin checks to use hasAuthority() instead of hasRole()
+                .requestMatchers("/users/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/products/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/products/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/products/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/categories/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/categories/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/categories/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             );
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }

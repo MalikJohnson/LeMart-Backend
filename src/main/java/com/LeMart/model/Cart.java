@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "carts")
+@Table(name = "carts", uniqueConstraints = @UniqueConstraint(columnNames = "user_id"))
 public class Cart {
     public Cart(Long id, User user, List<CartItem> cartItems, LocalDateTime createdAt, LocalDateTime updatedAt) {
 		this.id = id;

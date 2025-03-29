@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -21,17 +22,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        if (user.isAdmin()) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        }
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+        // Simple authorities - just check isAdmin
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPasswordHash(),
-                authorities);
+                user.isAdmin() ? 
+                    List.of(new SimpleGrantedAuthority("ADMIN")) : 
+                    List.of());
     }
 }

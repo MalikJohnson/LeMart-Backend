@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -110,6 +111,21 @@ public class CartController {
             item.setQuantity(itemDTO.getQuantity());
             item.setPriceAtAddition(product.getPrice());
             cart.addItem(item);
+        }
+    }
+    
+    @PutMapping("/user/{userId}")
+    public ResponseEntity<CartDTO> updateUserCart(
+        @PathVariable Long userId,
+        @RequestBody Map<String, List<CartItemDTO>> requestBody // Changed to accept wrapped items
+    ) {
+        try {
+            Cart cart = cartService.findCartByUserId(userId);
+            updateCartItems(cart, requestBody.get("items")); // Extract items from map
+            Cart updatedCart = cartService.updateCart(cart);
+            return ResponseEntity.ok(convertToDTO(updatedCart));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
