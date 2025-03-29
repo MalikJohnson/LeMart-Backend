@@ -2,6 +2,7 @@ package com.LeMart.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,7 +26,7 @@ public class Cart {
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> cartItems;
+    private List<CartItem> cartItems = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -67,6 +68,16 @@ public class Cart {
 	public void setCartItems(List<CartItem> cartItems) {
 		this.cartItems = cartItems;
 	}
+	
+	public void addItem(CartItem item) {
+        cartItems.add(item);
+        item.setCart(this);
+    }
+
+    public void removeItem(CartItem item) {
+        cartItems.remove(item);
+        item.setCart(null);
+    }
 
 	public LocalDateTime getCreatedAt() {
 		return createdAt;

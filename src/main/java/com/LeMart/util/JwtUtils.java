@@ -84,4 +84,11 @@ public class JwtUtils {
             return false;
         }
     }
+    public Long getUserIdFromJwtToken(String token) {
+        return Jwts.parser()
+            .setSigningKey(jwtSecret)
+            .parseClaimsJws(token)
+            .getBody()
+            .get("userId", Long.class);
+    }
 }

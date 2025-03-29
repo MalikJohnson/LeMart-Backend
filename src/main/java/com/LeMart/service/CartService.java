@@ -29,4 +29,12 @@ public class CartService {
     public void deleteCart(Long id) {
         cartRepo.deleteById(id);
     }
+    public Cart findCartById(Long id) {
+        return cartRepo.findById(id)
+                .orElseThrow(() -> new CartNotFoundException("Cart not found with ID: " + id));
+    }
+
+    public Cart updateCart(Cart cart) {
+        return cartRepo.save(cart);
+    }
 }
