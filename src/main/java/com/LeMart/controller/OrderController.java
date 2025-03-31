@@ -1,13 +1,16 @@
 package com.LeMart.controller;
 
 import com.LeMart.dto.OrderDTO;
-import com.LeMart.model.Order;
-import com.LeMart.service.OrderService;
+import com.LeMart.dto.OrderItemDTO;
+import com.LeMart.exception.ResourceNotFoundException;
+import com.LeMart.model.*;
+import com.LeMart.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -16,33 +19,109 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
+    private OrderItemService orderItemService;
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@PathVariable Long userId) {
-        List<Order> orders = orderService.findOrdersByUserId(userId);
-        List<OrderDTO> orderDTOs = orders.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(orderDTOs, HttpStatus.OK);
+        try {
+            List<Order> orders = orderService.findOrdersByUserId(userId);
+            List<OrderDTO> orderDTOs = orders.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+            return new ResponseEntity<>(orderDTOs, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
-        Order order = orderService.findOrderById(id);
-        return new ResponseEntity<>(convertToDTO(order), HttpStatus.OK);
+        try {
+            Order order = orderService.findOrderById(id);
+            return ResponseEntity.ok(convertToDTO(order));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping
     public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
-        Order order = convertToEntity(orderDTO);
-        Order createdOrder = orderService.createOrder(order);
-        return new ResponseEntity<>(convertToDTO(createdOrder), HttpStatus.CREATED);
+        try {
+            // Validate required fields
+            if (orderDTO.getUserId() == null || orderDTO.getOrderItems() == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Create order with basic info
+            User user = userService.findUserById(orderDTO.getUserId());
+            Order order = new Order();
+            order.setUser(user);
+            order.setStatus(orderDTO.getStatus() != null ? orderDTO.getStatus() : "PENDING");
+            
+            // Calculate total if not provided
+            if (orderDTO.getTotalAmount() == 0) {
+                double total = orderDTO.getOrderItems().stream()
+                        .mapToDouble(item -> item.getPriceAtPurchase() * item.getQuantity())
+                        .sum();
+                order.setTotalAmount(total);
+            } else {
+                order.setTotalAmount(orderDTO.getTotalAmount());
+            }
+
+            // Add order items
+            for (OrderItemDTO itemDTO : orderDTO.getOrderItems()) {
+                Product product = productService.findProductById(itemDTO.getProductId());
+                OrderItem item = new OrderItem();
+                item.setOrder(order);
+                item.setProduct(product);
+                item.setQuantity(itemDTO.getQuantity());
+                item.setPriceAtPurchase(itemDTO.getPriceAtPurchase());
+                order.getOrderItems().add(item);
+            }
+
+            Order createdOrder = orderService.createOrder(order);
+            return new ResponseEntity<>(convertToDTO(createdOrder), HttpStatus.CREATED);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+        	e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<OrderDTO> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> statusUpdate) {
+        try {
+            String newStatus = statusUpdate.get("status");
+            if (newStatus == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            Order updatedOrder = orderService.updateOrderStatus(id, newStatus);
+            return ResponseEntity.ok(convertToDTO(updatedOrder));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        orderService.deleteOrder(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try {
+            orderService.deleteOrder(id);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     private OrderDTO convertToDTO(Order order) {
@@ -51,14 +130,18 @@ public class OrderController {
         orderDTO.setUserId(order.getUser().getId());
         orderDTO.setTotalAmount(order.getTotalAmount());
         orderDTO.setStatus(order.getStatus());
+        
+        List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
+                .map(item -> new OrderItemDTO(
+                        item.getId(),
+                        order.getId(),
+                        item.getProduct().getId(),
+                        item.getQuantity(),
+                        item.getPriceAtPurchase()
+                ))
+                .collect(Collectors.toList());
+        
+        orderDTO.setOrderItems(itemDTOs);
         return orderDTO;
-    }
-
-    private Order convertToEntity(OrderDTO orderDTO) {
-        Order order = new Order();
-        order.setTotalAmount(orderDTO.getTotalAmount());
-        order.setStatus(orderDTO.getStatus());
-        // User is set separately (For example via a service method)
-        return order;
     }
 }
