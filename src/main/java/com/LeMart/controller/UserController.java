@@ -1,6 +1,7 @@
 package com.LeMart.controller;
 
 import com.LeMart.dto.UserDTO;
+import com.LeMart.dto.UserProfileUpdateDTO;
 import com.LeMart.model.User;
 import com.LeMart.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,15 @@ public class UserController {
         user.setId(id); // Ensure the ID is set
         User updatedUser = userService.updateUser(user);
         return new ResponseEntity<>(convertToDTO(updatedUser), HttpStatus.OK);
+    }
+    
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserDTO> updateUserProfile(
+        @PathVariable Long id,
+        @RequestBody UserProfileUpdateDTO updateDTO) {
+        
+        User updatedUser = userService.updateUserProfile(id, updateDTO);
+        return ResponseEntity.ok(convertToDTO(updatedUser));
     }
 
     @DeleteMapping("/{id}")

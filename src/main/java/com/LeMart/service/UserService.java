@@ -1,5 +1,6 @@
 package com.LeMart.service;
 
+import com.LeMart.dto.UserProfileUpdateDTO;
 import com.LeMart.exception.UserNotFoundException;
 import com.LeMart.model.User;
 import com.LeMart.repo.UserRepo;
@@ -27,6 +28,31 @@ public class UserService {
 
     public User updateUser(User user) {
         return userRepo.save(user);
+    }
+    
+    public User updateUserProfile(Long id, UserProfileUpdateDTO updateDTO) {
+        User existingUser = findUserById(id);
+        
+        if (updateDTO.getUsername() != null && !updateDTO.getUsername().isBlank()) {
+            existingUser.setUsername(updateDTO.getUsername());
+        }
+        if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()) {
+            existingUser.setEmail(updateDTO.getEmail());
+        }
+        if (updateDTO.getStreetAddress() != null) {
+            existingUser.setStreetAddress(updateDTO.getStreetAddress());
+        }
+        if (updateDTO.getCity() != null && !updateDTO.getCity().isBlank()) {
+            existingUser.setCity(updateDTO.getCity());
+        }
+        if (updateDTO.getState() != null && !updateDTO.getState().isBlank()) {
+            existingUser.setState(updateDTO.getState());
+        }
+        if (updateDTO.getZipCode() != null && !updateDTO.getZipCode().isBlank()) {
+            existingUser.setZipCode(updateDTO.getZipCode());
+        }
+        
+        return userRepo.save(existingUser);
     }
 
     public void deleteUser(Long id) {
