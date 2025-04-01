@@ -3,9 +3,13 @@ package com.LeMart.dto;
 import java.util.List;
 
 public class OrderDTO {
-    public OrderDTO(Long id, Long userId, double totalAmount, String status, List<OrderItemDTO> orderItems) {
+    public OrderDTO(Long id, Long userId, double subtotal, double tax, double shipping, 
+                   double totalAmount, String status, List<OrderItemDTO> orderItems) {
         this.id = id;
         this.userId = userId;
+        this.subtotal = subtotal;
+        this.tax = tax;
+        this.shipping = shipping;
         this.totalAmount = totalAmount;
         this.status = status;
         this.orderItems = orderItems;
@@ -15,10 +19,14 @@ public class OrderDTO {
     
     private Long id;
     private Long userId;
-    private double totalAmount;
+    private double subtotal;  // Sum of items before tax/shipping
+    private double tax;       // Calculated tax amount
+    private double shipping;  // Shipping cost
+    private double totalAmount; // Final total (subtotal + tax + shipping)
     private String status;
     private List<OrderItemDTO> orderItems;
     
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -35,6 +43,30 @@ public class OrderDTO {
         this.userId = userId;
     }
     
+    public double getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(double subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public double getTax() {
+        return tax;
+    }
+
+    public void setTax(double tax) {
+        this.tax = tax;
+    }
+
+    public double getShipping() {
+        return shipping;
+    }
+
+    public void setShipping(double shipping) {
+        this.shipping = shipping;
+    }
+
     public double getTotalAmount() {
         return totalAmount;
     }
@@ -61,7 +93,13 @@ public class OrderDTO {
     
     @Override
     public String toString() {
-        return "OrderDTO [id=" + id + ", userId=" + userId + ", totalAmount=" + totalAmount 
-               + ", status=" + status + ", orderItems=" + orderItems + "]";
+        return "OrderDTO [id=" + id + 
+               ", userId=" + userId + 
+               ", subtotal=" + subtotal + 
+               ", tax=" + tax + 
+               ", shipping=" + shipping + 
+               ", totalAmount=" + totalAmount + 
+               ", status=" + status + 
+               ", orderItems=" + orderItems + "]";
     }
 }

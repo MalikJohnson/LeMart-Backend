@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,31 +58,35 @@ public class OrderController {
     public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
         try {
             // Validate required fields
-            if (orderDTO.getUserId() == null || orderDTO.getOrderItems() == null) {
+            if (orderDTO.getUserId() == null || orderDTO.getOrderItems() == null || orderDTO.getOrderItems().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
 
-            // Create order with basic info
+            // Verify user exists
             User user = userService.findUserById(orderDTO.getUserId());
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Create order with all financial components
             Order order = new Order();
             order.setUser(user);
             order.setStatus(orderDTO.getStatus() != null ? orderDTO.getStatus() : "PENDING");
-            
-            // Calculate total if not provided
-            if (orderDTO.getTotalAmount() == 0) {
-                double total = orderDTO.getOrderItems().stream()
-                        .mapToDouble(item -> item.getPriceAtPurchase() * item.getQuantity())
-                        .sum();
-                order.setTotalAmount(total);
-            } else {
-                order.setTotalAmount(orderDTO.getTotalAmount());
-            }
+            order.setSubtotal(orderDTO.getSubtotal());
+            order.setTax(orderDTO.getTax());
+            order.setShipping(orderDTO.getShipping());
+            order.setTotalAmount(orderDTO.getTotalAmount());
+            order.setOrderItems(new ArrayList<>());
 
             // Add order items
             for (OrderItemDTO itemDTO : orderDTO.getOrderItems()) {
                 Product product = productService.findProductById(itemDTO.getProductId());
+                if (product == null) {
+                    throw new ResourceNotFoundException("Product not found with id: " + itemDTO.getProductId());
+                }
+                
                 OrderItem item = new OrderItem();
-                item.setOrder(order);
+                item.setOrder(order); 
                 item.setProduct(product);
                 item.setQuantity(itemDTO.getQuantity());
                 item.setPriceAtPurchase(itemDTO.getPriceAtPurchase());
@@ -92,7 +98,7 @@ public class OrderController {
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-        	e.printStackTrace();
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -128,6 +134,9 @@ public class OrderController {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(order.getId());
         orderDTO.setUserId(order.getUser().getId());
+        orderDTO.setSubtotal(order.getSubtotal());  
+        orderDTO.setTax(order.getTax());            
+        orderDTO.setShipping(order.getShipping());  
         orderDTO.setTotalAmount(order.getTotalAmount());
         orderDTO.setStatus(order.getStatus());
         
