@@ -1,10 +1,11 @@
 package com.LeMart.dto;
 
+import java.util.Date;
 import java.util.List;
 
 public class OrderDTO {
     public OrderDTO(Long id, Long userId, double subtotal, double tax, double shipping, 
-                   double totalAmount, String status, List<OrderItemDTO> orderItems) {
+                   double totalAmount, String status, Date createdAt, List<OrderItemDTO> orderItems) {
         this.id = id;
         this.userId = userId;
         this.subtotal = subtotal;
@@ -12,6 +13,7 @@ public class OrderDTO {
         this.shipping = shipping;
         this.totalAmount = totalAmount;
         this.status = status;
+        this.createdAt = createdAt;
         this.orderItems = orderItems;
     }
     
@@ -19,11 +21,12 @@ public class OrderDTO {
     
     private Long id;
     private Long userId;
-    private double subtotal;  // Sum of items before tax/shipping
-    private double tax;       // Calculated tax amount
-    private double shipping;  // Shipping cost
-    private double totalAmount; // Final total (subtotal + tax + shipping)
+    private double subtotal;
+    private double tax;
+    private double shipping;
+    private double totalAmount;
     private String status;
+    private Date createdAt;
     private List<OrderItemDTO> orderItems;
     
     // Getters and Setters
@@ -83,6 +86,14 @@ public class OrderDTO {
         this.status = status;
     }
     
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+    
     public List<OrderItemDTO> getOrderItems() {
         return orderItems;
     }
@@ -100,6 +111,7 @@ public class OrderDTO {
                ", shipping=" + shipping + 
                ", totalAmount=" + totalAmount + 
                ", status=" + status + 
+               ", createdAt=" + createdAt + 
                ", orderItems=" + orderItems + "]";
     }
 }

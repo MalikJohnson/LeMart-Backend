@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,18 +58,15 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
         try {
-            // Validate required fields
             if (orderDTO.getUserId() == null || orderDTO.getOrderItems() == null || orderDTO.getOrderItems().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
 
-            // Verify user exists
             User user = userService.findUserById(orderDTO.getUserId());
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            // Create order with all financial components
             Order order = new Order();
             order.setUser(user);
             order.setStatus(orderDTO.getStatus() != null ? orderDTO.getStatus() : "PENDING");
@@ -78,7 +76,6 @@ public class OrderController {
             order.setTotalAmount(orderDTO.getTotalAmount());
             order.setOrderItems(new ArrayList<>());
 
-            // Add order items
             for (OrderItemDTO itemDTO : orderDTO.getOrderItems()) {
                 Product product = productService.findProductById(itemDTO.getProductId());
                 if (product == null) {
@@ -98,7 +95,6 @@ public class OrderController {
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -134,11 +130,12 @@ public class OrderController {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(order.getId());
         orderDTO.setUserId(order.getUser().getId());
-        orderDTO.setSubtotal(order.getSubtotal());  
-        orderDTO.setTax(order.getTax());            
-        orderDTO.setShipping(order.getShipping());  
+        orderDTO.setSubtotal(order.getSubtotal());
+        orderDTO.setTax(order.getTax());
+        orderDTO.setShipping(order.getShipping());
         orderDTO.setTotalAmount(order.getTotalAmount());
         orderDTO.setStatus(order.getStatus());
+        orderDTO.setCreatedAt(Timestamp.valueOf(order.getCreatedAt()));
         
         List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
                 .map(item -> new OrderItemDTO(
@@ -146,7 +143,9 @@ public class OrderController {
                         order.getId(),
                         item.getProduct().getId(),
                         item.getQuantity(),
-                        item.getPriceAtPurchase()
+                        item.getPriceAtPurchase(),
+                        item.getProduct().getName(),
+                        item.getProduct().getImageUrl()
                 ))
                 .collect(Collectors.toList());
         
